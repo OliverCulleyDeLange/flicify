@@ -1,0 +1,3 @@
+rootProject.name='Flicify'
+include ':app'
+include ':fliclibv1:fliclib'
