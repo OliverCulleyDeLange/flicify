@@ -2,8 +2,8 @@ package uk.co.oliverdelange.flicify.flic
 
 import io.flic.flic2libandroid.Flic2Button
 import io.flic.flic2libandroid.Flic2ButtonListener
-import uk.co.oliverdelange.flicify.redux.Events
-import uk.co.oliverdelange.flicify.redux.store
+import uk.co.oliverdelange.flicify.redux.AppStore
+import uk.co.oliverdelange.flicify.redux.Event
 
 val flic2ButtonListener = object : Flic2ButtonListener() {
 //    val holder: FlicViewHolder?
@@ -31,23 +31,23 @@ val flic2ButtonListener = object : Flic2ButtonListener() {
         isUp: Boolean,
         isDown: Boolean
     ) {
-        store.dispatch(Events.Button.Down)
+        AppStore.dispatch(Event.Button.Down)
     }
 
     override fun onConnect(button: Flic2Button) {
-        store.dispatch(Events.Button.Connect(button))
+        AppStore.dispatch(Event.Button.Connect(button))
     }
 
     override fun onReady(button: Flic2Button, timestamp: Long) {
-        store.dispatch(Events.Button.Ready(button, timestamp))
+        AppStore.dispatch(Event.Button.Ready(button, timestamp))
     }
 
     override fun onDisconnect(button: Flic2Button) {
-        store.dispatch(Events.Button.Disconnect(button))
+        AppStore.dispatch(Event.Button.Disconnect(button))
     }
 
     override fun onUnpaired(button: Flic2Button) {
-        store.dispatch(Events.Button.Unpaired(button))
+        AppStore.dispatch(Event.Button.Unpaired(button))
 //
 //        var index = -1
 //        for (i in dataSet.indices) {

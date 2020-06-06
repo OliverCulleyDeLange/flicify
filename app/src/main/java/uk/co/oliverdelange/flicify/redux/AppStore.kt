@@ -1,35 +1,44 @@
 package uk.co.oliverdelange.flicify.redux
 
+import android.util.Log
+import com.freeletics.rxredux.Reducer
+import com.freeletics.rxredux.SideEffect
+import com.freeletics.rxredux.reduxStore
 import io.flic.flic2libandroid.Flic2Button
-import org.reduxkotlin.Reducer
-import org.reduxkotlin.applyMiddleware
-import org.reduxkotlin.createStore
+import io.flic.flic2libandroid.Flic2Manager
+import io.reactivex.rxkotlin.ofType
+import io.reactivex.subjects.PublishSubject
+import uk.co.oliverdelange.flicify.flic.flic2ScanCallback
 
-sealed class Events {
-    sealed class Scan {
-        object Start
-        object Stop
+interface Action
+
+sealed class Event : Action {
+    sealed class Scan : Event() {
+        object Start : Scan()
+        object Stop : Scan()
     }
-    sealed class Button {
-        object Down
-        data class Connect(val button: Flic2Button)
-        data class Ready(val button: Flic2Button, val timestamp: Long)
-        data class Disconnect(val button: Flic2Button)
-        data class Unpaired(val button: Flic2Button)
+
+    sealed class Button : Event() {
+        object Down : Button()
+        data class Connect(val button: Flic2Button) : Button()
+        data class Ready(val button: Flic2Button, val timestamp: Long) : Button()
+        data class Disconnect(val button: Flic2Button) : Button()
+        data class Unpaired(val button: Flic2Button) : Button()
     }
 }
 
-sealed class Results {
-    sealed class Scan {
-        data class ScanSuccess(val result: Int, val subCode: Int, val button: Flic2Button)
-        data class ScanFailure(val result: Int, val errorString: String)
-        object FlicDiscoveredButAlreadyPaired
-        object FlicDiscovered
-        object FlicConnected
+sealed class Result : Action {
+    sealed class Scan : Result() {
+        data class ScanSuccess(val result: Int, val subCode: Int, val button: Flic2Button) : Scan()
+        data class ScanFailure(val result: Int, val errorString: String) : Scan()
+        object FlicDiscoveredButAlreadyPaired : Scan()
+        object FlicDiscovered : Scan()
+        object FlicConnected : Scan()
     }
-    sealed class LocationPermission{
-        object Granted
-        object Denied
+
+    sealed class LocationPermission : Result() {
+        object Granted : LocationPermission()
+        object Denied : LocationPermission()
     }
 }
 
@@ -42,12 +51,45 @@ data class AppState(
     }
 }
 
-val reducer: Reducer<AppState> = { state, action ->
+val reducer: Reducer<AppState, Action> = { state, action ->
     when (action) {
-        is Events.Scan.Start -> state.copy(scanning = true)
-        is Events.Scan.Stop -> state.copy(scanning = false)
+        is Event.Scan.Start -> state.copy(scanning = true)
+        is Event.Scan.Stop -> state.copy(scanning = false)
         else -> state
     }
 }
 
-val store = createStore(reducer, AppState(), applyMiddleware(loggingMiddleware, startScan))
+val logging: SideEffect<AppState, Action> = { actions, state ->
+    actions.doOnNext {
+        Log.v("ACTION", it.toString())
+    }.ignoreElements().toObservable()
+}
+
+val startScan: SideEffect<AppState, Action> = { actions, state ->
+    actions.ofType<Event.Scan.Start>().doOnNext {
+        //            (findViewById<View>(R.id.scanNewButton) as Button).text = "Cancel scan"
+//            (findViewById<View>(R.id.scanWizardStatus) as TextView).text =
+//                "Press and hold down your Flic2 button until it connects"
+        Log.d("SCAN", "Starting scan")
+        Flic2Manager.getInstance().startScan(flic2ScanCallback())
+    }.ignoreElements().toObservable()
+}
+
+val stopScan: SideEffect<AppState, Action> = { actions, state ->
+    actions.ofType<Event.Scan.Stop>().doOnNext {
+        //            scanWizardStatus.text = ""
+
+    }.ignoreElements().toObservable()
+}
+
+object AppStore {
+    private val actions = PublishSubject.create<Action>()
+
+    val state = actions
+        .reduxStore(AppState(), listOf(logging, startScan, stopScan), reducer)
+        .distinctUntilChanged()
+
+    fun dispatch(action: Action) {
+        actions.onNext(action)
+    }
+}

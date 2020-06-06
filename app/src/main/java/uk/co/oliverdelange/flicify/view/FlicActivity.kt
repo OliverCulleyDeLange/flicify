@@ -10,12 +10,12 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.flic.flic2libandroid.Flic2Manager
+import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.activity_flic.*
 import uk.co.oliverdelange.flicify.R
-import uk.co.oliverdelange.flicify.redux.AppState
-import uk.co.oliverdelange.flicify.redux.Events
-import uk.co.oliverdelange.flicify.redux.Results
-import uk.co.oliverdelange.flicify.redux.store
+import uk.co.oliverdelange.flicify.redux.AppStore
+import uk.co.oliverdelange.flicify.redux.Event
+import uk.co.oliverdelange.flicify.redux.Result
 
 const val REQUEST_LOCATION_PERMISSIONS = 1
 
@@ -23,7 +23,7 @@ class FlicActivity : AppCompatActivity() {
 
     private val flicRecyclerViewAdapter = FlicRecyclerViewAdapter()
 
-    lateinit var dispose: () -> Unit
+    private val disposables = mutableListOf<Disposable>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,18 +48,17 @@ class FlicActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        dispose = store.subscribe {
-            val state: AppState = store.getState()
+        disposables.add(AppStore.state.subscribe {
             Log.v("View", "Something happened!")
-        }
+        })
         scanNewButton.setOnClickListener {
-            store.dispatch(Events.Scan.Start)
+            AppStore.dispatch(Event.Scan.Start)
         }
     }
 
     override fun onStop() {
         super.onStop()
-        dispose()
+        disposables.forEach { it.dispose() }
     }
 
     fun checkPermissions() {
@@ -72,9 +71,9 @@ class FlicActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == REQUEST_LOCATION_PERMISSIONS) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                store.dispatch(Results.LocationPermission.Granted)
+                AppStore.dispatch(Result.LocationPermission.Granted)
             } else {
-                store.dispatch(Results.LocationPermission.Denied)
+                AppStore.dispatch(Result.LocationPermission.Denied)
 //                Toast.makeText(
 //                    applicationContext,
 //                    "Scanning needs Location permission, which you have rejected",
