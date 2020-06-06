@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat
 import io.flic.flic2libandroid.Flic2Button
 import io.flic.flic2libandroid.Flic2ButtonListener
 import io.flic.flic2libandroid.Flic2Manager
+import uk.co.oliverdelange.flicify.service.FlicifyService
 
 class Flicify : Application() {
     override fun onCreate() {

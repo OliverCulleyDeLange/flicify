@@ -1,4 +1,4 @@
-package uk.co.oliverdelange.flicify
+package uk.co.oliverdelange.flicify.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,6 +10,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import uk.co.oliverdelange.flicify.R
+import uk.co.oliverdelange.flicify.view.FlicActivity
 
 class FlicifyService : Service() {
     private val NOTIFICATION_CHANNEL_ID = "Notification_Channel_Flicify"
