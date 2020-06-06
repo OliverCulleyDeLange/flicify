@@ -1,4 +1,4 @@
-package uk.co.oliverdelange.flicify.flic
+package uk.co.oliverdelange.flicify
 
 import android.app.Application
 import android.content.Intent
@@ -9,7 +9,7 @@ import io.flic.flic2libandroid.Flic2Button
 import io.flic.flic2libandroid.Flic2ButtonListener
 import io.flic.flic2libandroid.Flic2Manager
 
-class Flic2SampleApplication : Application() {
+class Flicify : Application() {
     override fun onCreate() {
         super.onCreate()
 
@@ -17,13 +17,12 @@ class Flic2SampleApplication : Application() {
         ContextCompat.startForegroundService(
             applicationContext, Intent(
                 applicationContext,
-                Flic2SampleService::class.java
+                FlicifyService::class.java
             )
         )
 
         // Initialize the Flic2 manager to run on the same thread as the current thread (the main thread)
-        val manager =
-            Flic2Manager.initAndGetInstance(applicationContext, Handler())
+        val manager = Flic2Manager.initAndGetInstance(applicationContext, Handler())
 
         // Every time the app process starts, connect to all paired buttons and assign a click listener
         for (button in manager.buttons) {

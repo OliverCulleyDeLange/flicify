@@ -1,4 +1,4 @@
-package uk.co.oliverdelange.flicify.flic
+package uk.co.oliverdelange.flicify
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,38 +10,27 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import uk.co.oliverdelange.flicify.R
-import uk.co.oliverdelange.flicify.ui.login.LoginActivity
 
-class Flic2SampleService : Service() {
-    private val NOTIFICATION_CHANNEL_ID = "Notification_Channel_Flic2SampleService"
-    private val NOTIFICATION_CHANNEL_NAME: CharSequence = "Flic2Sample"
+class FlicifyService : Service() {
+    private val NOTIFICATION_CHANNEL_ID = "Notification_Channel_Flicify"
+    private val NOTIFICATION_CHANNEL_NAME: CharSequence = "Flicify"
+
     override fun onCreate() {
         super.onCreate()
-        val notificationIntent =
-            Intent(this, LoginActivity::class.java)
-        val contentIntent = PendingIntent.getActivity(
-            this,
-            0,
-            notificationIntent,
-            PendingIntent.FLAG_CANCEL_CURRENT
-        )
+        val notificationIntent = Intent(this, FlicActivity::class.java)
+        val contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val mChannel = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
                 NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
             )
-            val notificationManager =
-                this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(mChannel)
         }
-        val notification = NotificationCompat.Builder(
-            this.applicationContext,
-            NOTIFICATION_CHANNEL_ID
-        )
-            .setContentTitle("Flic2Sample")
-            .setContentText("Flic2Sample")
+        val notification = NotificationCompat.Builder(this.applicationContext, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("Flicify")
+            .setContentText("Flic -> Spotify")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(contentIntent)
             .setOngoing(true)
@@ -54,19 +43,13 @@ class Flic2SampleService : Service() {
     }
 
     class BootUpReceiver : BroadcastReceiver() {
-        override fun onReceive(
-            context: Context,
-            intent: Intent
-        ) {
+        override fun onReceive(context: Context, intent: Intent) {
             // The Application class's onCreate has already been called at this point, which is what we want
         }
     }
 
     class UpdateReceiver : BroadcastReceiver() {
-        override fun onReceive(
-            context: Context,
-            intent: Intent
-        ) {
+        override fun onReceive(context: Context, intent: Intent) {
             // The Application class's onCreate has already been called at this point, which is what we want
         }
     }

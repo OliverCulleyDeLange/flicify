@@ -1,4 +1,4 @@
-package uk.co.oliverdelange.flicify.flic
+package uk.co.oliverdelange.flicify
 
 import android.Manifest
 import android.annotation.TargetApi
@@ -22,19 +22,16 @@ import io.flic.flic2libandroid.Flic2Button
 import io.flic.flic2libandroid.Flic2ButtonListener
 import io.flic.flic2libandroid.Flic2Manager
 import io.flic.flic2libandroid.Flic2ScanCallback
-import uk.co.oliverdelange.flicify.R
 import java.util.*
 
 class FlicActivity : AppCompatActivity() {
-    private val flicRecyclerViewAdapter =
-        FlicRecyclerViewAdapter()
+    private val flicRecyclerViewAdapter = FlicRecyclerViewAdapter()
     private var isScanning = false
 
     internal class FlicRecyclerViewAdapter :
         RecyclerView.Adapter<FlicRecyclerViewAdapter.FlicViewHolder>() {
         internal class ButtonData(var button: Flic2Button) {
-            var holder: FlicViewHolder? =
-                null
+            var holder: FlicViewHolder? = null
             var isDown = false
             var listener: Flic2ButtonListener? = null
             val shapeColor: Int
@@ -44,16 +41,13 @@ class FlicActivity : AppCompatActivity() {
                     Flic2Button.CONNECTION_STATE_CONNECTED_READY -> if (isDown) Color.BLUE else Color.GREEN
                     else -> Color.BLACK
                 }
-
         }
 
-        var dataSet =
-            ArrayList<ButtonData>()
+        var dataSet = ArrayList<ButtonData>()
 
         internal class FlicViewHolder(var linearLayout: LinearLayout) :
             RecyclerView.ViewHolder(linearLayout) {
-            var buttonData: ButtonData? =
-                null
+            var buttonData: ButtonData? = null
             var bdaddrTxt: TextView
             var connectBtn: Button
             var removeBtn: Button
@@ -67,27 +61,18 @@ class FlicActivity : AppCompatActivity() {
             }
         }
 
-        override fun onCreateViewHolder(
-            parent: ViewGroup,
-            viewType: Int
-        ): FlicViewHolder {
-            val v =
-                LayoutInflater.from(parent.context)
-                    .inflate(R.layout.view_flic, parent, false) as LinearLayout
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FlicViewHolder {
+            val v = LayoutInflater.from(parent.context)
+                .inflate(R.layout.view_flic, parent, false) as LinearLayout
             return FlicViewHolder(v)
         }
 
-        override fun onBindViewHolder(
-            holder: FlicViewHolder,
-            position: Int
-        ) {
-            val buttonData =
-                dataSet[position]
+        override fun onBindViewHolder(holder: FlicViewHolder, position: Int) {
+            val buttonData = dataSet[position]
             holder.buttonData = buttonData
             holder.buttonData!!.holder = holder
             holder.bdaddrTxt.text = buttonData.button.bdAddr
-            holder.connectBtn.text =
-                if (buttonData.button.connectionState == Flic2Button.CONNECTION_STATE_DISCONNECTED) "Connect" else "Disconnect"
+            holder.connectBtn.text = if (buttonData.button.connectionState == Flic2Button.CONNECTION_STATE_DISCONNECTED) "Connect" else "Disconnect"
             holder.circle.background.colorFilter = PorterDuffColorFilter(
                 holder.buttonData!!.shapeColor,
                 PorterDuff.Mode.SRC_ATOP
@@ -121,8 +106,7 @@ class FlicActivity : AppCompatActivity() {
         }
 
         fun addButton(button: Flic2Button) {
-            val buttonData =
-                ButtonData(button)
+            val buttonData = ButtonData(button)
             buttonData.listener = object : Flic2ButtonListener() {
                 val holder: FlicViewHolder?
                     get() {
@@ -132,8 +116,7 @@ class FlicActivity : AppCompatActivity() {
                     }
 
                 private fun updateColor() {
-                    val holder =
-                        holder
+                    val holder = holder
                     if (holder != null) {
                         holder.circle.background.colorFilter = PorterDuffColorFilter(
                             holder.buttonData!!.shapeColor,
@@ -158,10 +141,7 @@ class FlicActivity : AppCompatActivity() {
                     updateColor()
                 }
 
-                override fun onReady(
-                    button: Flic2Button,
-                    timestamp: Long
-                ) {
+                override fun onReady(button: Flic2Button, timestamp: Long) {
                     updateColor()
                 }
 
@@ -212,11 +192,7 @@ class FlicActivity : AppCompatActivity() {
         Flic2Manager.getInstance().stopScan()
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == 1) {
             if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 scanNewButton(findViewById(R.id.scanNewButton))
@@ -272,14 +248,14 @@ class FlicActivity : AppCompatActivity() {
                 override fun onComplete(
                     result: Int,
                     subCode: Int,
-                    button: Flic2Button
+                    button: Flic2Button?
                 ) {
                     isScanning = false
                     (findViewById<View>(R.id.scanNewButton) as Button).text = "Scan new button"
                     if (result == Flic2ScanCallback.RESULT_SUCCESS) {
                         (findViewById<View>(R.id.scanWizardStatus) as TextView).text =
                             "Scan wizard success!"
-                        (application as Flic2SampleApplication).listenToButtonWithToast(button)
+                        (application as Flicify).listenToButtonWithToast(button!!)
                         flicRecyclerViewAdapter.addButton(button)
                     } else {
                         (findViewById<View>(R.id.scanWizardStatus) as TextView).text =

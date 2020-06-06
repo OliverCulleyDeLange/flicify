@@ -25,7 +25,6 @@ android {
 }
 
 dependencies {
-    implementation project(":fliclibv1:fliclib")
     implementation 'io.flic:flic2lib-android:1.1.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])

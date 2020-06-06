@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:name=".flic.Flic2SampleApplication"
+        android:name=".Flicify"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -14,13 +14,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service
-            android:name=".flic.Flic2SampleService"
+            android:name=".FlicifyService"
             android:enabled="true"
             android:exported="false">
         </service>
 
         <receiver
-            android:name=".flic.Flic2SampleService$BootUpReceiver"
+            android:name=".FlicifyService$BootUpReceiver"
             android:enabled="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
@@ -30,7 +30,7 @@
         </receiver>
 
         <receiver
-            android:name=".flic.Flic2SampleService$UpdateReceiver"
+            android:name=".FlicifyService$UpdateReceiver"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
@@ -42,7 +42,7 @@
         </receiver>
 
         <activity
-            android:name=".flic.FlicActivity"
+            android:name=".FlicActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
