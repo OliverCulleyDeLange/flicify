@@ -42,13 +42,14 @@ class FlicActivity : AppCompatActivity() {
         AppStore.state(this) {
             Log.v("View", "State changed. Updating UI!")
             spinner.visibility = visibleIf(it.connectionState == AppState.ConnectionState.Scanning)
-            mainButton.text = when (it.connectionState) {
+            mainFlicButton.text = when (it.connectionState) {
                 is AppState.ConnectionState.Connected -> getString(R.string.disconnect)
                 AppState.ConnectionState.Disconnected -> getString(R.string.scan)
                 AppState.ConnectionState.Scanning -> getString(R.string.cancel)
             }
             flicInfo.text = it.flicInfo
             spotifyInfo.text = it.spotifyInfo
+            flicBg.setBackgroundColor(getColor(if(it.flicDown)R.color.spotifyBlack else R.color.flicPurple))
         }
         AppStore.actions<Event.CheckPermissions>(this) {
             checkPermissions()
@@ -66,7 +67,7 @@ class FlicActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         }
-        AppStore.push(this, mainButton.clicks().map { Event.Tap.MainButton })
+        AppStore.push(this, mainFlicButton.clicks().map { Event.Tap.MainButton })
         AppStore.dispatch(Event.CheckPermissions)
 
         val connectionParams = ConnectionParams.Builder(CLIENT_ID)
@@ -87,6 +88,11 @@ class FlicActivity : AppCompatActivity() {
                     AppStore.dispatch(Result.SpotifyError(throwable))
                 }
             })
+    }
+
+    override fun onStop() {
+        super.onStop()
+        SpotifyAppRemote.disconnect(mSpotifyAppRemote)
     }
 
     private fun checkPermissions() {

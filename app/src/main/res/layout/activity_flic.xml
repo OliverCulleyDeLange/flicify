@@ -5,18 +5,28 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/activity_horizontal_margin"
     tools:context=".view.FlicActivity">
 
+    <View
+        android:id="@+id/flicBg"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/flicPurple"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/spotifyInfo"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/spotifyBg"/>
+
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/mainButton"
+        android:id="@+id/mainFlicButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        tools:text="@string/scan"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@+id/flicBg"
+        app:layout_constraintEnd_toEndOf="@+id/flicBg"
+        app:layout_constraintStart_toStartOf="@+id/flicBg"
+        app:layout_constraintTop_toTopOf="@+id/flicBg"
+        tools:text="@string/scan" />
 
     <ProgressBar
         android:id="@+id/spinner"
@@ -24,9 +34,9 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/mainButton"
-        app:layout_constraintStart_toEndOf="@+id/mainButton"
-        app:layout_constraintTop_toTopOf="@+id/mainButton" />
+        app:layout_constraintBottom_toBottomOf="@+id/mainFlicButton"
+        app:layout_constraintStart_toEndOf="@+id/mainFlicButton"
+        app:layout_constraintTop_toTopOf="@+id/mainFlicButton" />
 
     <TextView
         android:id="@+id/flicInfo"
@@ -34,17 +44,33 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:text="TextView"
+        android:textColor="@color/spotifyBlack"
+        tools:text="TextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/mainButton" />
+        app:layout_constraintTop_toBottomOf="@+id/mainFlicButton" />
+
+    <View
+        android:id="@+id/spotifyBg"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/spotifyBlack"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/spotifyInfo"
+        app:layout_constraintTop_toBottomOf="@id/flicBg" />
 
     <TextView
         android:id="@+id/spotifyInfo"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:textColor="@color/spotifyGreen"
+        android:textSize="24sp"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@+id/spotifyBg"
+        app:layout_constraintEnd_toEndOf="@+id/spotifyBg"
+        app:layout_constraintStart_toStartOf="@+id/spotifyBg"
+        app:layout_constraintTop_toTopOf="@+id/spotifyBg"
+        tools:text="Spotify status" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

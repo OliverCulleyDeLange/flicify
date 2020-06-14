@@ -23,7 +23,7 @@ val reducer: Reducer<AppState, Action> = { state, action ->
         is Result.Flic.Ready -> state.copy(flicInfo = "Flic ready!")
         is Result.Flic.Unpaired -> state.copy(flicInfo = "Flic upaired!")
 
-        is Event.Flic -> state.copy(flicDown = action.isDown, flicInfo = "Fic ${if (action.isDown) "pressed" else "connected"}!")
+        is Event.Flic -> state.copy(flicDown = action.isDown, flicInfo = "Flic ${if (action.isDown) "pressed" else "connected"}!")
 
         is Result.SpotifyConnected -> state.copy(spotifyInfo = "Spotify connected")
         is Result.SpotifyError -> state.copy(spotifyInfo = "Spotify error: ${action.t}")
