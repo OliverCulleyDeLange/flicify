@@ -1,6 +1,7 @@
 package uk.co.oliverdelange.flicify.redux
 
 import com.spotify.android.appremote.api.SpotifyAppRemote
+import com.spotify.protocol.types.PlayerState
 import io.flic.flic2libandroid.Flic2Button
 
 
@@ -27,6 +28,8 @@ sealed class Event : Action {
 }
 
 sealed class Result : Action {
+    data class SpotifyPlayerUpdate(val playerState: PlayerState) : Action
+
     data class SpotifyConnected(val remote: SpotifyAppRemote) : Action
     data class SpotifyError(val t: Throwable) : Action
 

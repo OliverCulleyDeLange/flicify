@@ -27,6 +27,7 @@ val reducer: Reducer<AppState, Action> = { state, action ->
 
         is Result.SpotifyConnected -> state.copy(spotifyInfo = "Spotify connected")
         is Result.SpotifyError -> state.copy(spotifyInfo = "Spotify error: ${action.t}")
+        is Result.SpotifyPlayerUpdate -> state.copy(spotifyInfo = "Currently playing: ${action.playerState.track.name} by ${action.playerState.track.artist.name}")
         else -> state
     }
 }
