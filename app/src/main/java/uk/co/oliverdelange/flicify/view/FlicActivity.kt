@@ -4,13 +4,12 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import io.flic.flic2libandroid.Flic2Manager
-import io.reactivex.disposables.Disposable
+import io.reactivex.Observable
 import kotlinx.android.synthetic.main.activity_flic.*
 import uk.co.oliverdelange.flicify.R
 import uk.co.oliverdelange.flicify.redux.AppStore
@@ -21,47 +20,32 @@ const val REQUEST_LOCATION_PERMISSIONS = 1
 
 class FlicActivity : AppCompatActivity() {
 
-    private val flicRecyclerViewAdapter = FlicRecyclerViewAdapter()
-
-    private val disposables = mutableListOf<Disposable>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_flic)
-        val recyclerView = findViewById<RecyclerView>(R.id.flicsView)
-        recyclerView.setHasFixedSize(true)
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(this)
-        recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = flicRecyclerViewAdapter
-        for (button in Flic2Manager.getInstance().buttons) {
-            flicRecyclerViewAdapter.addButton(button)
-        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // This will make sure button listeners are correctly removed
-        flicRecyclerViewAdapter.onDestroy()
-        // Stop a scan, if it's running
         Flic2Manager.getInstance().stopScan()
     }
 
     override fun onStart() {
         super.onStart()
-        disposables.add(AppStore.state.subscribe {
-            Log.v("View", "Something happened!")
-        })
-        scanNewButton.setOnClickListener {
-            AppStore.dispatch(Event.Scan.Start)
+        AppStore.state(this) {
+            Log.v("View", "State changed. Updating UI!")
+            spinner.visibility = visibleIf(it.scanning)
+            scanButton.text = if (it.scanning) getString(R.string.cancel) else getString(R.string.scan)
+            infoText.text = it.info
         }
+        AppStore.actions<Event.CheckPermissions>(this) {
+            checkPermissions()
+        }
+        AppStore.push(this, scanButton.clicks().map { Event.Tap.MainButton })
+        AppStore.dispatch(Event.CheckPermissions)
     }
 
-    override fun onStop() {
-        super.onStop()
-        disposables.forEach { it.dispose() }
-    }
-
-    fun checkPermissions() {
+    private fun checkPermissions() {
         val permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSIONS)
@@ -81,5 +65,11 @@ class FlicActivity : AppCompatActivity() {
 //                ).show()
             }
         }
+    }
+}
+
+private fun Button.clicks() = Observable.create<Unit> { emitter ->
+    setOnClickListener {
+        emitter.onNext(Unit)
     }
 }

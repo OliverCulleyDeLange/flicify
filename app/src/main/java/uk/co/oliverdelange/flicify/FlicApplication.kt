@@ -32,7 +32,7 @@ class Flicify : Application() {
         }
     }
 
-    fun listenToButtonWithToast(button: Flic2Button) {
+    private fun listenToButtonWithToast(button: Flic2Button) {
         button.addListener(object : Flic2ButtonListener() {
             override fun onButtonUpOrDown(
                 button: Flic2Button,
