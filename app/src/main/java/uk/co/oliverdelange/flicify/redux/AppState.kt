@@ -5,8 +5,9 @@ import io.flic.flic2libandroid.Flic2Button
 data class AppState(
     val connectionState: ConnectionState = ConnectionState.Disconnected,
     val scanStatus: ScanStatus = ScanStatus.Complete,
-    val info: String = "",
-    val flicDown: Boolean = false
+    val flicInfo: String = "",
+    val flicDown: Boolean = false,
+    val spotifyInfo: String = ""
 ) {
     sealed class ConnectionState {
         object Scanning : ConnectionState()
