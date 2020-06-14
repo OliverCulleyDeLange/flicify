@@ -8,15 +8,23 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.spotify.android.appremote.api.ConnectionParams
+import com.spotify.android.appremote.api.Connector
+import com.spotify.android.appremote.api.SpotifyAppRemote
 import io.reactivex.rxkotlin.ofType
 import uk.co.oliverdelange.flicify.R
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
+import uk.co.oliverdelange.flicify.redux.Result
 import uk.co.oliverdelange.flicify.view.FlicActivity
 
 class FlicifyService : Service() {
     private val NOTIFICATION_CHANNEL_ID = "Notification_Channel_Flicify"
     private val NOTIFICATION_CHANNEL_NAME: CharSequence = "Flicify"
+
+    private val CLIENT_ID = "afa24a972e7040e097a6266c2dafff26"
+    private val REDIRECT_URI = "https://flicify.oliverdelange.co.uk/auth"
+    private var spotifyAppRemote: SpotifyAppRemote? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -35,6 +43,37 @@ class FlicifyService : Service() {
             Log.w("BG", "Flic event: $it")
             notificationManager.notify(SERVICE_NOTIFICATION_ID, getNotification(it.isDown))
         }.subscribe()
+
+        AppStore.actions.ofType<Result.SpotifyConnected>().doOnNext {
+            Log.i("Spotify", "Spotify connected. Subscribing to playerState updates")
+            spotifyAppRemote?.playerApi?.subscribeToPlayerState()?.setEventCallback { playerState ->
+                AppStore.dispatch(Result.SpotifyPlayerUpdate(playerState))
+            }
+        }.subscribe()
+
+        connectSpotifyRemote()
+    }
+
+    private fun connectSpotifyRemote() {
+        Log.i("Spotify", "Connecting to Spotify remote")
+        val connectionParams = ConnectionParams.Builder(CLIENT_ID)
+            .setRedirectUri(REDIRECT_URI)
+            .showAuthView(true)
+            .build()
+
+        SpotifyAppRemote.connect(this, connectionParams,
+            object : Connector.ConnectionListener {
+                override fun onConnected(spotifyAppRemote: SpotifyAppRemote) {
+                    this@FlicifyService.spotifyAppRemote = spotifyAppRemote
+                    Log.d("Spotify", "Spotify Remote Connected!")
+                    AppStore.dispatch(Result.SpotifyConnected(spotifyAppRemote))
+                }
+
+                override fun onFailure(throwable: Throwable) {
+                    Log.e("Spotify", throwable.message, throwable)
+                    AppStore.dispatch(Result.SpotifyError(throwable))
+                }
+            })
     }
 
     private fun getNotification(down: Boolean): Notification? =
@@ -52,6 +91,12 @@ class FlicifyService : Service() {
             )
             .setOngoing(true)
             .build()
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("Service", "Destroying Flicify service")
+        SpotifyAppRemote.disconnect(spotifyAppRemote)
+    }
 
     override fun onBind(intent: Intent): IBinder? {
         throw UnsupportedOperationException("Not implemented")

@@ -1,5 +1,6 @@
 package uk.co.oliverdelange.flicify.redux
 
+import com.spotify.protocol.types.PlayerState
 import io.flic.flic2libandroid.Flic2Button
 
 data class AppState(
@@ -7,6 +8,7 @@ data class AppState(
     val scanStatus: ScanStatus = ScanStatus.Complete,
     val flicInfo: String = "",
     val flicDown: Boolean = false,
+    val playerState: PlayerState? = null,
     val spotifyInfo: String = ""
 ) {
     sealed class ConnectionState {
