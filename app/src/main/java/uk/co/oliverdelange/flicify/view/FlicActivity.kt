@@ -53,6 +53,10 @@ class FlicActivity : AppCompatActivity() {
         AppStore.actions<Event.CheckPermissions>(this) {
             checkPermissions()
         }
+        AppStore.actions<Result.SpotifyConnected>(this) {
+            Log.i("Spotify","Playing random playlist")
+            mSpotifyAppRemote?.playerApi?.play("spotify:playlist:37i9dQZF1DX2sUQwD7tbmL");
+        }
         AppStore.actions<Result.LocationPermission.Denied>(this) {
             Toast.makeText(
                 applicationContext,
