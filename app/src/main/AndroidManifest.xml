@@ -33,11 +33,7 @@
             android:name=".service.FlicifyService$UpdateReceiver"
             android:enabled="true">
             <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data
-                    android:path="io.flic.flic2androidsample"
-                    android:scheme="package" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
