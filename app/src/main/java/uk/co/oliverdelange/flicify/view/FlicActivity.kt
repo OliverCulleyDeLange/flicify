@@ -75,9 +75,3 @@ class FlicActivity : AppCompatActivity() {
         }
     }
 }
-
-private fun Button.clicks() = Observable.create<Unit> { emitter ->
-    setOnClickListener {
-        emitter.onNext(Unit)
-    }
-}
