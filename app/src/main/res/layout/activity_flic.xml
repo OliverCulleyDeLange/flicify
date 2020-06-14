@@ -9,7 +9,7 @@
     tools:context=".view.FlicActivity">
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/scanButton"
+        android:id="@+id/mainButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -24,9 +24,9 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/scanButton"
-        app:layout_constraintStart_toEndOf="@+id/scanButton"
-        app:layout_constraintTop_toTopOf="@+id/scanButton" />
+        app:layout_constraintBottom_toBottomOf="@+id/mainButton"
+        app:layout_constraintStart_toEndOf="@+id/mainButton"
+        app:layout_constraintTop_toTopOf="@+id/mainButton" />
 
     <TextView
         android:id="@+id/infoText"
@@ -37,6 +37,6 @@
         android:text="TextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scanButton" />
+        app:layout_constraintTop_toBottomOf="@+id/mainButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

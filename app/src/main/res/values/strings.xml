@@ -3,4 +3,5 @@
 
     <string name="scan">Scan for flic</string>
     <string name="cancel">Cancel scan</string>
+    <string name="disconnect">Disconnect flic</string>
 </resources>

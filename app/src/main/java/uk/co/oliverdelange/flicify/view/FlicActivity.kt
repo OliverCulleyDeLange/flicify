@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -12,6 +13,7 @@ import io.flic.flic2libandroid.Flic2Manager
 import io.reactivex.Observable
 import kotlinx.android.synthetic.main.activity_flic.*
 import uk.co.oliverdelange.flicify.R
+import uk.co.oliverdelange.flicify.redux.AppState
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
 import uk.co.oliverdelange.flicify.redux.Result
@@ -34,14 +36,25 @@ class FlicActivity : AppCompatActivity() {
         super.onStart()
         AppStore.state(this) {
             Log.v("View", "State changed. Updating UI!")
-            spinner.visibility = visibleIf(it.scanning)
-            scanButton.text = if (it.scanning) getString(R.string.cancel) else getString(R.string.scan)
+            spinner.visibility = visibleIf(it.connectionState == AppState.ConnectionState.Scanning)
+            mainButton.text = when (it.connectionState) {
+                is AppState.ConnectionState.Connected -> getString(R.string.disconnect)
+                AppState.ConnectionState.Disconnected -> getString(R.string.scan)
+                AppState.ConnectionState.Scanning -> getString(R.string.cancel)
+            }
             infoText.text = it.info
         }
         AppStore.actions<Event.CheckPermissions>(this) {
             checkPermissions()
         }
-        AppStore.push(this, scanButton.clicks().map { Event.Tap.MainButton })
+        AppStore.actions<Result.LocationPermission.Denied>(this) {
+            Toast.makeText(
+                applicationContext,
+                "Scanning needs Location permission, which you have rejected",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        AppStore.push(this, mainButton.clicks().map { Event.Tap.MainButton })
         AppStore.dispatch(Event.CheckPermissions)
     }
 
@@ -58,11 +71,6 @@ class FlicActivity : AppCompatActivity() {
                 AppStore.dispatch(Result.LocationPermission.Granted)
             } else {
                 AppStore.dispatch(Result.LocationPermission.Denied)
-//                Toast.makeText(
-//                    applicationContext,
-//                    "Scanning needs Location permission, which you have rejected",
-//                    Toast.LENGTH_SHORT
-//                ).show()
             }
         }
     }

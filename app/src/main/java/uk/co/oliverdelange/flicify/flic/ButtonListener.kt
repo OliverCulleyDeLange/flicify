@@ -4,25 +4,9 @@ import io.flic.flic2libandroid.Flic2Button
 import io.flic.flic2libandroid.Flic2ButtonListener
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
+import uk.co.oliverdelange.flicify.redux.Result
 
 val flic2ButtonListener = object : Flic2ButtonListener() {
-//    val holder: FlicViewHolder?
-//        get() {
-//            return if (buttonData.holder != null && buttonData.holder!!.buttonData === buttonData) {
-//                buttonData.holder
-//            } else null
-//        }
-//
-//    private fun updateColor() {
-//        val holder = holder
-//        if (holder != null) {
-//            holder.circle.background.colorFilter = PorterDuffColorFilter(
-//                holder.buttonData!!.shapeColor,
-//                PorterDuff.Mode.SRC_ATOP
-//            )
-//        }
-//    }
-
     override fun onButtonUpOrDown(
         button: Flic2Button,
         wasQueued: Boolean,
@@ -31,34 +15,22 @@ val flic2ButtonListener = object : Flic2ButtonListener() {
         isUp: Boolean,
         isDown: Boolean
     ) {
-        AppStore.dispatch(Event.Button.Down)
+        AppStore.dispatch(Event.Flic(button, wasQueued, lastQueued, timestamp, isUp, isDown))
     }
 
     override fun onConnect(button: Flic2Button) {
-        AppStore.dispatch(Event.Button.Connect(button))
+        AppStore.dispatch(Result.Flic.Connect(button))
     }
 
     override fun onReady(button: Flic2Button, timestamp: Long) {
-        AppStore.dispatch(Event.Button.Ready(button, timestamp))
+        AppStore.dispatch(Result.Flic.Ready(button, timestamp))
     }
 
     override fun onDisconnect(button: Flic2Button) {
-        AppStore.dispatch(Event.Button.Disconnect(button))
+        AppStore.dispatch(Result.Flic.Disconnected(button))
     }
 
     override fun onUnpaired(button: Flic2Button) {
-        AppStore.dispatch(Event.Button.Unpaired(button))
-//
-//        var index = -1
-//        for (i in dataSet.indices) {
-//            if (dataSet[i].button === button) {
-//                index = i
-//                break
-//            }
-//        }
-//        if (index != -1) {
-//            dataSet.removeAt(index)
-//            notifyItemRemoved(index)
-//        }
+        AppStore.dispatch(Result.Flic.Unpaired(button))
     }
 }
