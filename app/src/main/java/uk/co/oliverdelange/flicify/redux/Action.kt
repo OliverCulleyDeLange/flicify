@@ -44,6 +44,7 @@ sealed class Result : Action {
     }
 
     sealed class Flic : Result() {
+        data class ConnectRequest(val button: Flic2Button) : Flic()
         data class Connect(val button: Flic2Button) : Flic()
         data class Disconnected(val button: Flic2Button) : Flic()
         data class Ready(val button: Flic2Button, val timestamp: Long) : Flic()

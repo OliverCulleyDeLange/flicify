@@ -12,6 +12,7 @@ data class AppState(
     val spotifyInfo: String = ""
 ) {
     sealed class FlicConnectionState {
+        data class Sleeping(val button: Flic2Button) : FlicConnectionState()
         object Scanning : FlicConnectionState()
         data class Connected(val button: Flic2Button) : FlicConnectionState()
         object Disconnected : FlicConnectionState()

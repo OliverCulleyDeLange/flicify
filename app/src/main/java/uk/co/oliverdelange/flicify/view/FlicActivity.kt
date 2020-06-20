@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import io.flic.flic2libandroid.Flic2Manager
 import kotlinx.android.synthetic.main.activity_flic.*
 import uk.co.oliverdelange.flicify.R
+import uk.co.oliverdelange.flicify.flic.connectFlics
 import uk.co.oliverdelange.flicify.redux.AppState
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
@@ -39,6 +40,7 @@ class FlicActivity : AppCompatActivity() {
             Log.v("View", "State changed. Updating UI!")
             spinner.visibility = visibleIf(it.connectionState == AppState.FlicConnectionState.Scanning)
             mainFlicButton.text = when (it.connectionState) {
+                is AppState.FlicConnectionState.Sleeping -> getString(R.string.disconnect)
                 is AppState.FlicConnectionState.Connected -> getString(R.string.disconnect)
                 AppState.FlicConnectionState.Disconnected -> getString(R.string.scan)
                 AppState.FlicConnectionState.Scanning -> getString(R.string.cancel)
@@ -65,6 +67,8 @@ class FlicActivity : AppCompatActivity() {
         }
         AppStore.push(this, mainFlicButton.clicks().map { Event.Tap.MainButton })
         AppStore.dispatch(Event.CheckPermissions)
+
+        connectFlics(Flic2Manager.getInstance().buttons)
     }
 
     private fun checkPermissions() {
