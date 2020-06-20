@@ -1,9 +1,9 @@
 package uk.co.oliverdelange.flicify.redux
 
-import android.media.MediaPlayer
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import com.freeletics.rxredux.reduxStore
+import com.jakewharton.rx.replayingShare
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDispose
 import io.reactivex.Observable
@@ -16,12 +16,14 @@ object AppStore {
         get() = actionsSubject
 
     val state: Observable<AppState> = actions
-        .reduxStore(AppState(), sideEffects(), reducer)
+        .reduxStore(AppState(spotifyInfo = "Spotify not linked yet"), sideEffects(), reducer)
+        .distinctUntilChanged()
         .doOnNext {
             Log.v("STATE", "$it")
         }
-        .distinctUntilChanged()
-        .share()
+        .replayingShare()
+
+    fun currentState(): AppState = state.doOnNext { Log.v("STATE", "currentState: $it") }.blockingFirst()
 
     /** Dispatch a single action to the store*/
     fun dispatch(action: Action) {

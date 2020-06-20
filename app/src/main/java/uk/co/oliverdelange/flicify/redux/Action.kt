@@ -34,7 +34,6 @@ sealed class Result : Action {
     }
 
     data class SpotifyPlayerUpdate(val playerState: PlayerState) : Action
-
     data class SpotifyConnected(val remote: SpotifyAppRemote) : Action
     data class SpotifyError(val t: Throwable) : Action
 

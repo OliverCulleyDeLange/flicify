@@ -52,6 +52,8 @@ dependencies {
 
     implementation 'com.freeletics.rxredux:rxredux:1.0.1'
 
+    compile 'com.jakewharton.rx2:replaying-share-kotlin:2.2.0'
+
     implementation 'com.google.android.material:material:1.1.0'
 
     def autoDisposeVersion = '1.4.0'

@@ -23,7 +23,7 @@ val logging: SideEffect<AppState, Action> = { actions, state ->
 val convertMainButtonTap: SideEffect<AppState, Action> = { actions, state ->
     actions.ofType<Event.Tap.MainButton>()
         .map {
-            when (val connectionState = state().connectionState) {
+            when (val connectionState = state().flicConnectionState) {
                 is AppState.FlicConnectionState.Sleeping -> Event.DisconnectFlic(connectionState.button)
                 AppState.FlicConnectionState.Scanning -> Event.StopScan
                 is AppState.FlicConnectionState.Connected -> Event.DisconnectFlic(connectionState.button)

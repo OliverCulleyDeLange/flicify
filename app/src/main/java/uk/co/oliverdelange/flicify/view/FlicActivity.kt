@@ -38,8 +38,8 @@ class FlicActivity : AppCompatActivity() {
         super.onStart()
         AppStore.state(this) {
             Log.v("View", "State changed. Updating UI!")
-            spinner.visibility = visibleIf(it.connectionState == AppState.FlicConnectionState.Scanning)
-            mainFlicButton.text = when (it.connectionState) {
+            spinner.visibility = visibleIf(it.flicConnectionState == AppState.FlicConnectionState.Scanning)
+            mainFlicButton.text = when (it.flicConnectionState) {
                 is AppState.FlicConnectionState.Sleeping -> getString(R.string.disconnect)
                 is AppState.FlicConnectionState.Connected -> getString(R.string.disconnect)
                 AppState.FlicConnectionState.Disconnected -> getString(R.string.scan)
@@ -47,7 +47,7 @@ class FlicActivity : AppCompatActivity() {
             }
             flicInfo.text = it.flicInfo
             spotifyInfo.text = it.spotifyInfo
-            it.playerState?.let { player ->
+            it.spotifyPlayerState?.let { player ->
                 spotifyInfo.text = if (player.isPaused) "Spotify paused"
                 else "${player.track.name} by ${player.track.artist.name}"
             }
