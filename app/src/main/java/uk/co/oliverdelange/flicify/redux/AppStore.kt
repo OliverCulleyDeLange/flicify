@@ -1,5 +1,6 @@
 package uk.co.oliverdelange.flicify.redux
 
+import android.media.MediaPlayer
 import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import com.freeletics.rxredux.reduxStore

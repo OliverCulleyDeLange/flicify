@@ -4,13 +4,20 @@ import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.ofType
 import uk.co.oliverdelange.flicify.R
 import uk.co.oliverdelange.flicify.redux.AppStore
@@ -25,6 +32,8 @@ class FlicifyService : Service() {
     private val CLIENT_ID = "afa24a972e7040e097a6266c2dafff26"
     private val REDIRECT_URI = "https://flicify.oliverdelange.co.uk/auth"
     private var spotifyAppRemote: SpotifyAppRemote? = null
+
+    private val disposables = CompositeDisposable()
 
     override fun onCreate() {
         Log.v("Service", "onCreate FlicifyService")
@@ -44,27 +53,70 @@ class FlicifyService : Service() {
             Log.w("Service", "Flic event: $it")
             notificationManager.notify(SERVICE_NOTIFICATION_ID, getNotification(it.isDown))
             if (it.isDown) {
-                saveCurrentlyPlayingSongToSpotify()
+                addOrRemoveTrackFromLibrary()
             }
-        }.subscribe()
+        }.subscribe().addTo(disposables)
 
         AppStore.actions.ofType<Result.SpotifyConnected>().doOnNext {
             Log.i("Spotify", "Spotify connected. Subscribing to playerState updates")
             spotifyAppRemote?.playerApi?.subscribeToPlayerState()?.setEventCallback { playerState ->
                 AppStore.dispatch(Result.SpotifyPlayerUpdate(playerState))
             }
-        }.subscribe()
+        }.subscribe().addTo(disposables)
+
+        AppStore.actions.ofType<Result.Track>().doOnNext {
+            when (it) {
+                is Result.Track.SavedToLibrary -> playSound(R.raw.added)
+                is Result.Track.RemovedFromLibrary -> playSound(R.raw.removed)
+                is Result.Track.CanNotSaveToLibrary -> playSound(R.raw.error)
+            }
+        }.subscribe().addTo(disposables)
 
         connectSpotifyRemote()
     }
 
-    private fun saveCurrentlyPlayingSongToSpotify() {
-        Log.d("Service", "Saving currently playing song")
-        spotifyAppRemote?.playerApi?.playerState?.setResultCallback {
-            val uri = it.track.uri
-            Log.d("Service", "Got current song URI: $uri")
-            spotifyAppRemote?.userApi?.addToLibrary(uri)?.setResultCallback {
-                Log.d("Service", "Saved song to library!")
+    private fun playSound(res: Int) {
+        MediaPlayer.create(applicationContext, res).apply {
+            setOnCompletionListener {
+                Log.i("Sound", "Releasing Media Player")
+                it.release()
+            }
+            Log.i("Sound", "Playing sound")
+            start()
+        }
+
+        getSystemService(Context.VIBRATOR_SERVICE).apply {
+            Log.i("Sound", "Vibrating")
+            val v = this as Vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else v.vibrate(500);
+        }
+    }
+
+    private fun addOrRemoveTrackFromLibrary() {
+        //TODO RXify
+        spotifyAppRemote?.playerApi?.playerState?.setResultCallback { player ->
+            val track = player.track
+            Log.d("Service", "Got current song URI: ${track.uri}")
+            spotifyAppRemote?.userApi?.getLibraryState(track.uri)?.setResultCallback { trackState ->
+                when {
+                    trackState.isAdded -> {
+                        Log.d("Service", "Removing currently playing song")
+                        spotifyAppRemote?.userApi?.removeFromLibrary(track.uri)?.setResultCallback {
+                            Log.d("Service", "Removed song from library!")
+                            AppStore.dispatch(Result.Track.RemovedFromLibrary(track))
+                        }
+                    }
+                    trackState.canAdd -> {
+                        Log.d("Service", "Saving currently playing song")
+                        spotifyAppRemote?.userApi?.addToLibrary(track.uri)?.setResultCallback {
+                            Log.d("Service", "Saved song to library!")
+                            AppStore.dispatch(Result.Track.SavedToLibrary(track))
+                        }
+                    }
+                    else -> AppStore.dispatch(Result.Track.CanNotSaveToLibrary(track))
+                }
             }
         }
     }
@@ -96,6 +148,7 @@ class FlicifyService : Service() {
             .setContentTitle("Flicify")
             .setContentText("Flic -> Spotify")
             .setSmallIcon(if (down) R.drawable.ic_notification_pressed else R.drawable.ic_notification)
+//            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setContentIntent(
                 PendingIntent.getActivity(
                     this,
@@ -112,6 +165,7 @@ class FlicifyService : Service() {
         super.onDestroy()
         Log.d("Service", "Destroying Flicify service")
         SpotifyAppRemote.disconnect(spotifyAppRemote)
+        disposables.dispose()
     }
 
     override fun onBind(intent: Intent): IBinder? {

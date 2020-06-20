@@ -4,7 +4,6 @@ import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.PlayerState
 import io.flic.flic2libandroid.Flic2Button
 
-
 interface Action
 
 sealed class Event : Action {
@@ -28,6 +27,12 @@ sealed class Event : Action {
 }
 
 sealed class Result : Action {
+    sealed class Track : Action {
+        data class SavedToLibrary(val track: com.spotify.protocol.types.Track) : Track()
+        data class RemovedFromLibrary(val track: com.spotify.protocol.types.Track) : Track()
+        data class CanNotSaveToLibrary(val track: com.spotify.protocol.types.Track) : Track()
+    }
+
     data class SpotifyPlayerUpdate(val playerState: PlayerState) : Action
 
     data class SpotifyConnected(val remote: SpotifyAppRemote) : Action
