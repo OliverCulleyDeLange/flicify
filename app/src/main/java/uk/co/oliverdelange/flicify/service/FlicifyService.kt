@@ -41,8 +41,11 @@ class FlicifyService : Service() {
         startForeground(SERVICE_NOTIFICATION_ID, getNotification(false))
 
         AppStore.actions.ofType<Event.Flic>().doOnNext {
-            Log.w("BG", "Flic event: $it")
+            Log.w("Service", "Flic event: $it")
             notificationManager.notify(SERVICE_NOTIFICATION_ID, getNotification(it.isDown))
+            if (it.isDown) {
+                saveCurrentlyPlayingSongToSpotify()
+            }
         }.subscribe()
 
         AppStore.actions.ofType<Result.SpotifyConnected>().doOnNext {
@@ -53,6 +56,17 @@ class FlicifyService : Service() {
         }.subscribe()
 
         connectSpotifyRemote()
+    }
+
+    private fun saveCurrentlyPlayingSongToSpotify() {
+        Log.d("Service", "Saving currently playing song")
+        spotifyAppRemote?.playerApi?.playerState?.setResultCallback {
+            val uri = it.track.uri
+            Log.d("Service", "Got current song URI: $uri")
+            spotifyAppRemote?.userApi?.addToLibrary(uri)?.setResultCallback {
+                Log.d("Service", "Saved song to library!")
+            }
+        }
     }
 
     private fun connectSpotifyRemote() {
