@@ -21,24 +21,27 @@ const val REQUEST_LOCATION_PERMISSIONS = 1
 class FlicActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.v("View", "onCreate FlicActivity")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_flic)
     }
 
     override fun onDestroy() {
+        Log.v("View", "onDestroy FlicActivity")
         super.onDestroy()
         Flic2Manager.getInstance().stopScan()
     }
 
     override fun onStart() {
+        Log.v("View", "onStart FlicActivity")
         super.onStart()
         AppStore.state(this) {
             Log.v("View", "State changed. Updating UI!")
-            spinner.visibility = visibleIf(it.connectionState == AppState.ConnectionState.Scanning)
+            spinner.visibility = visibleIf(it.connectionState == AppState.FlicConnectionState.Scanning)
             mainFlicButton.text = when (it.connectionState) {
-                is AppState.ConnectionState.Connected -> getString(R.string.disconnect)
-                AppState.ConnectionState.Disconnected -> getString(R.string.scan)
-                AppState.ConnectionState.Scanning -> getString(R.string.cancel)
+                is AppState.FlicConnectionState.Connected -> getString(R.string.disconnect)
+                AppState.FlicConnectionState.Disconnected -> getString(R.string.scan)
+                AppState.FlicConnectionState.Scanning -> getString(R.string.cancel)
             }
             flicInfo.text = it.flicInfo
             spotifyInfo.text = it.spotifyInfo

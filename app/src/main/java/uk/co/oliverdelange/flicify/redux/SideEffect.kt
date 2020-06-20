@@ -24,9 +24,9 @@ val convertMainButtonTap: SideEffect<AppState, Action> = { actions, state ->
     actions.ofType<Event.Tap.MainButton>()
         .map {
             when (val connectionState = state().connectionState) {
-                AppState.ConnectionState.Scanning -> Event.StopScan
-                is AppState.ConnectionState.Connected -> Event.DisconnectFlic(connectionState.button)
-                AppState.ConnectionState.Disconnected -> Event.StartScan
+                AppState.FlicConnectionState.Scanning -> Event.StopScan
+                is AppState.FlicConnectionState.Connected -> Event.DisconnectFlic(connectionState.button)
+                AppState.FlicConnectionState.Disconnected -> Event.StartScan
             }
         }
 }

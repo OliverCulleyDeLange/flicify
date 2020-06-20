@@ -27,6 +27,7 @@ class FlicifyService : Service() {
     private var spotifyAppRemote: SpotifyAppRemote? = null
 
     override fun onCreate() {
+        Log.v("Service", "onCreate FlicifyService")
         super.onCreate()
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -93,6 +94,7 @@ class FlicifyService : Service() {
             .build()
 
     override fun onDestroy() {
+        Log.v("Service", "onDestroy FlicifyService")
         super.onDestroy()
         Log.d("Service", "Destroying Flicify service")
         SpotifyAppRemote.disconnect(spotifyAppRemote)

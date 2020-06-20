@@ -15,6 +15,7 @@ import uk.co.oliverdelange.flicify.service.FlicifyService
 class Flicify : Application() {
     override fun onCreate() {
         super.onCreate()
+        Log.v("View", "onCreate Flicify Application")
 
         // To prevent the application process from being killed while the app is running in the background, start a Foreground Service
         ContextCompat.startForegroundService(
