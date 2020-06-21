@@ -1,9 +1,9 @@
 package uk.co.oliverdelange.flicify.flic
 
-import android.util.Log
 import io.flic.flic2libandroid.Flic2Button
 import io.flic.flic2libandroid.Flic2Manager
 import io.flic.flic2libandroid.Flic2ScanCallback
+import timber.log.Timber
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Result
 
@@ -27,7 +27,7 @@ fun flic2ScanCallback(): Flic2ScanCallback {
                     button.addListener(flic2ButtonListener)
                     AppStore.dispatch(Result.Scan.ScanSuccess(result, subCode, button))
                 }else {
-                   Log.e("Flic","Successful scan completion, but no button!")
+                   Timber.e("Successful scan completion, but no button!")
                }
             } else {
                 AppStore.dispatch(Result.Scan.ScanFailure(result, Flic2Manager.errorCodeToString(result)))

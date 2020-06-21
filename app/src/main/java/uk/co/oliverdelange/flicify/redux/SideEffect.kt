@@ -1,9 +1,9 @@
 package uk.co.oliverdelange.flicify.redux
 
-import android.util.Log
 import com.freeletics.rxredux.SideEffect
 import io.flic.flic2libandroid.Flic2Manager
 import io.reactivex.rxkotlin.ofType
+import timber.log.Timber
 import uk.co.oliverdelange.flicify.flic.flic2ScanCallback
 
 fun sideEffects() = listOf(
@@ -16,7 +16,7 @@ fun sideEffects() = listOf(
 
 val logging: SideEffect<AppState, Action> = { actions, state ->
     actions.doOnNext {
-        Log.d("ACTION", it.toString())
+        Timber.d(it.toString())
     }.ignoreElements().toObservable()
 }
 
@@ -35,7 +35,7 @@ val convertMainButtonTap: SideEffect<AppState, Action> = { actions, state ->
 val startScan: SideEffect<AppState, Action> = { actions, state ->
     actions.ofType<Event.StartScan>()
         .map {
-            Log.d("SCAN", "Starting scan")
+            Timber.d("Starting scan")
             Flic2Manager.getInstance().startScan(flic2ScanCallback())
             Result.Scan.ScanStarted
         }

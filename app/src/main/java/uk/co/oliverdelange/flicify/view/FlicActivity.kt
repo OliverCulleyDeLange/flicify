@@ -3,13 +3,13 @@ package uk.co.oliverdelange.flicify.view
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flic.flic2libandroid.Flic2Manager
 import kotlinx.android.synthetic.main.activity_flic.*
+import timber.log.Timber
 import uk.co.oliverdelange.flicify.R
 import uk.co.oliverdelange.flicify.flic.connectFlics
 import uk.co.oliverdelange.flicify.redux.AppState
@@ -22,22 +22,22 @@ const val REQUEST_LOCATION_PERMISSIONS = 1
 class FlicActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.v("View", "onCreate FlicActivity")
+        Timber.v("onCreate FlicActivity")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_flic)
     }
 
     override fun onDestroy() {
-        Log.v("View", "onDestroy FlicActivity")
+        Timber.v("onDestroy FlicActivity")
         super.onDestroy()
         Flic2Manager.getInstance().stopScan()
     }
 
     override fun onStart() {
-        Log.v("View", "onStart FlicActivity")
+        Timber.v("onStart FlicActivity")
         super.onStart()
         AppStore.state(this) {
-            Log.v("View", "State changed. Updating UI!")
+            Timber.v("State changed. Updating UI!")
             spinner.visibility = visibleIf(it.flicConnectionState == AppState.FlicConnectionState.Scanning)
             mainFlicButton.text = when (it.flicConnectionState) {
                 is AppState.FlicConnectionState.Sleeping -> getString(R.string.disconnect)
