@@ -8,6 +8,9 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def versionName = "0.1"
+def versionCode = 1
+
 android {
     signingConfigs {
         release {
@@ -24,16 +27,21 @@ android {
         applicationId "uk.co.oliverdelange.flicify"
         minSdkVersion 23
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        setVersionCode(versionCode)
+        setVersionName(versionName)
+        setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "flicify-${variant.name}-${versionName}(${versionCode}).apk"
         }
     }
     kotlinOptions {

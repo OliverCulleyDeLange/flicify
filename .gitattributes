@@ -1,2 +1,4 @@
 *secret* filter=git-crypt diff=git-crypt
 *.jks filter=git-crypt diff=git-crypt
+
+*.aab filter=lfs diff=lfs merge=lfs -text
