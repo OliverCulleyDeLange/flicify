@@ -4,15 +4,21 @@ import com.freeletics.rxredux.Reducer
 
 val reducer: Reducer<AppState, Action> = { state, action ->
     when (action) {
-        is Result.Scan.ScanStarted -> state.copy(flicConnectionState = AppState.FlicConnectionState.Scanning)
-        is Result.Scan.ScanStopped -> state.copy(flicConnectionState = AppState.FlicConnectionState.Disconnected)
+        is Result.Scan.ScanStarted -> state.copy(
+            flicConnectionState = AppState.FlicConnectionState.Scanning,
+            flicInfo = "Press and hold your Flic until it connects"
+        )
+        is Result.Scan.ScanStopped -> state.copy(
+            flicConnectionState = AppState.FlicConnectionState.Disconnected,
+            flicInfo = "Scan stopped"
+        )
         is Result.Scan.ScanSuccess -> state.copy(
             flicConnectionState = AppState.FlicConnectionState.Connected(action.button),
-            flicInfo = "Success (${action.result}-${action.subCode}) ${action.button}"
+            flicInfo = "Scan Success (${action.result}-${action.subCode}) ${action.button}"
         )
         is Result.Scan.ScanFailure -> state.copy(
             flicConnectionState = AppState.FlicConnectionState.Disconnected,
-            flicInfo = "Error ${action.result}: ${action.errorString}"
+            flicInfo = "Scan Error ${action.result}: ${action.errorString}"
         )
         is Result.Scan.FlicDiscovered -> state.copy(flicInfo = "Found a flic button... now connecting")
         is Result.Scan.FlicConnected -> state.copy(flicInfo = "Connected... now pairing")

@@ -11,9 +11,9 @@ import uk.co.oliverdelange.flicify.service.FlicifyService
 class Flicify : Application() {
     override fun onCreate() {
         super.onCreate()
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
+//        if (BuildConfig.DEBUG) {
+            Timber.plant(CustomDebugTree())
+//        }
 
         Timber.v("onCreate Flicify Application")
 
@@ -27,5 +27,11 @@ class Flicify : Application() {
 
         // Initialize the Flic2 manager to run on the same thread as the current thread (the main thread)
         Flic2Manager.init(applicationContext, Handler())
+    }
+}
+
+class CustomDebugTree : Timber.DebugTree() {
+    override fun createStackElementTag(element: StackTraceElement): String? {
+        return ":::FLICIFY:::" + super.createStackElementTag(element)
     }
 }

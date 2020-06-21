@@ -46,10 +46,11 @@ class FlicActivity : AppCompatActivity() {
                 AppState.FlicConnectionState.Scanning -> getString(R.string.cancel)
             }
             flicInfo.text = it.flicInfo
+            flicInfo.setTextColor(if (it.flicDown) getColor(R.color.flicPurple) else getColor(R.color.spotifyBlack))
             spotifyInfo.text = it.spotifyInfo
             it.spotifyPlayerState?.let { player ->
                 spotifyInfo.text = if (player.isPaused) "Spotify paused"
-                else "${player.track.name} by ${player.track.artist.name}"
+                else "Playing: ${player.track.name} by ${player.track.artist.name}"
             }
 
             flicBg.setBackgroundColor(getColor(if (it.flicDown) R.color.spotifyBlack else R.color.flicPurple))
