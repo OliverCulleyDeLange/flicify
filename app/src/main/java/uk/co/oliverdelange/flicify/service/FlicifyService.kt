@@ -74,7 +74,7 @@ class FlicifyService : Service() {
         AppStore.state.subscribe {
             // Hack to keep state subscription alive
             Log.v("Service", "State in service : $it")
-        }
+        }.addTo(disposables)
         connectSpotifyRemote()
     }
 
