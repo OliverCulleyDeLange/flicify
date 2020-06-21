@@ -24,11 +24,11 @@ val reducer: Reducer<AppState, Action> = { state, action ->
         is Result.Scan.FlicConnected -> state.copy(flicInfo = "Connected... now pairing")
         is Result.Scan.FlicDiscoveredButAlreadyPaired -> state.copy(flicInfo = "Found a flic, but it's already paired")
 
-        is Result.Flic.ConnectRequest -> state.copy(flicInfo = "Flic ready!", flicConnectionState = AppState.FlicConnectionState.Sleeping(action.button))
+        is Result.Flic.ConnectRequest -> state.copy(flicInfo = "Flic ready", flicConnectionState = AppState.FlicConnectionState.Sleeping(action.button))
         is Result.Flic.Connect -> state.copy(flicConnectionState = AppState.FlicConnectionState.Connected(action.button))
         is Result.Flic.Disconnected -> state.copy(flicConnectionState = AppState.FlicConnectionState.Disconnected)
-        is Result.Flic.Ready -> state.copy(flicInfo = "Flic ready!", flicConnectionState = AppState.FlicConnectionState.Connected(action.button))
-        is Result.Flic.Unpaired -> state.copy(flicInfo = "Flic upaired!", flicConnectionState = AppState.FlicConnectionState.Disconnected)
+        is Result.Flic.Ready -> state.copy(flicInfo = "Flic ready", flicConnectionState = AppState.FlicConnectionState.Connected(action.button))
+        is Result.Flic.Unpaired -> state.copy(flicInfo = "Flic disconnected", flicConnectionState = AppState.FlicConnectionState.Disconnected)
 
         is Event.Flic -> state.copy(
             flicDown = action.isDown,
