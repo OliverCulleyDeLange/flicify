@@ -8,5 +8,5 @@ When IFTTT or the official Flic app start supporting this functionality, i'll ge
 
 Ps. You need to have the official Spotify app installed for this to work.
 
-![Screenshot1](playstore/screenshot1.jpg)
-![Screenshot2](playstore/screenshot2.jpg)
+<img src="playstore/screenshot1.jpg" width="250" />
+<img src="playstore/screenshot2.jpg" width="250" />
