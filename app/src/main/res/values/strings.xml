@@ -2,6 +2,6 @@
     <string name="app_name">Flicify</string>
 
     <string name="scan">Scan for Flic</string>
-    <string name="cancel">Cancel scan</string>
-    <string name="disconnect">Disconnect flic</string>
+    <string name="cancel">Cancel Scan</string>
+    <string name="disconnect">Disconnect Flic</string>
 </resources>
