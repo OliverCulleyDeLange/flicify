@@ -8,8 +8,8 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
-def versionName = "0.1"
-def versionCode = 1
+def versionName = "0.2"
+def versionCode = 2
 
 android {
     signingConfigs {
