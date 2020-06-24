@@ -1,4 +1,4 @@
-https://play.google.com/store/apps/details?id=uk.co.oliverdelange.wcr_android_kt&hl=en_GB
+https://play.google.com/store/apps/details?id=uk.co.oliverdelange.flicify&hl=en_GB
 
 A simple app that links a Flic button to your Spotify app. 
 Click the Flic button to save the currently playing song to your library.
