@@ -8,8 +8,8 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
-def versionName = "0.2"
-def versionCode = 2
+def versionName = "0.3"
+def versionCode = 3
 
 android {
     signingConfigs {
@@ -20,13 +20,13 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
-    compileSdkVersion 29
+    compileSdkVersion 30
     buildToolsVersion "29.0.3"
 
     defaultConfig {
         applicationId "uk.co.oliverdelange.flicify"
         minSdkVersion 23
-        targetSdkVersion 29
+        targetSdkVersion 30
         setVersionCode(versionCode)
         setVersionName(versionName)
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
