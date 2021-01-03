@@ -9,8 +9,8 @@ fun connectFlics(buttons: List<Flic2Button>) {
     for (button in buttons) {
         val state = ConnectionState.values()[button.connectionState]
         Timber.d("Button name: ${button.name}, state: $state, macAddress: ${button.bdAddr} firmware: ${button.firmwareVersion}, battery: ${button.lastKnownBatteryLevel.voltage}, uuid: ${button.uuid}, sn: ${button.serialNumber}")
-        if (button.connectionState == Flic2Button.CONNECTION_STATE_DISCONNECTED) {
-            Timber.d("Connecting to disconnected known button: $button")
+        if (button.connectionState != Flic2Button.CONNECTION_STATE_CONNECTED_READY) {
+            Timber.d("Connecting to known button: $button")
             button.addListener(flic2ButtonListener)
             button.connect()
             AppStore.dispatch(Result.Flic.ConnectRequest(button))

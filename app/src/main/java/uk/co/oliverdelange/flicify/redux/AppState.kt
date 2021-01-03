@@ -5,7 +5,8 @@ import com.spotify.protocol.types.PlayerState
 import io.flic.flic2libandroid.Flic2Button
 
 data class AppState(
-    val flicConnectionState: FlicConnectionState = FlicConnectionState.Disconnected,
+    val flicPaired: Boolean = false,
+    val flicConnectionState: FlicConnectionState = FlicConnectionState.Disconnected(),
     val flicScanStatus: FlicScanStatus = FlicScanStatus.Complete,
     val flicInfo: String = "",
     val flicDown: Boolean = false,
@@ -15,10 +16,10 @@ data class AppState(
     val spotifyInfo: String = ""
 ) {
     sealed class FlicConnectionState {
-        data class Sleeping(val button: Flic2Button) : FlicConnectionState()
+        data class Connecting(val button: Flic2Button) : FlicConnectionState()
         object Scanning : FlicConnectionState()
         data class Connected(val button: Flic2Button) : FlicConnectionState()
-        object Disconnected : FlicConnectionState()
+        data class Disconnected(val paired: Boolean = false) : FlicConnectionState()
     }
 
     enum class FlicScanStatus {

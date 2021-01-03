@@ -18,10 +18,12 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.ofType
 import timber.log.Timber
 import uk.co.oliverdelange.flicify.R
+import uk.co.oliverdelange.flicify.redux.AppState
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
 import uk.co.oliverdelange.flicify.redux.Result
 import uk.co.oliverdelange.flicify.view.FlicActivity
+
 
 class FlicifyService : Service() {
     private val vibrateMilliseconds = 200L
@@ -33,23 +35,18 @@ class FlicifyService : Service() {
 
     private val disposables = CompositeDisposable()
 
+    private val upNotification by lazy { getNotification(false) }
+    private val downNotification by lazy { getNotification(true) }
+
+    private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
+
     override fun onCreate() {
         Timber.v("onCreate FlicifyService")
         super.onCreate()
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val mChannel = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                NOTIFICATION_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW
-            )
-            notificationManager.createNotificationChannel(mChannel)
-        }
-        startForeground(SERVICE_NOTIFICATION_ID, getNotification(false))
 
-        AppStore.actions.ofType<Event.Flic>().doOnNext {
-           Timber.w("Flic event: $it")
-            notificationManager.notify(SERVICE_NOTIFICATION_ID, getNotification(it.isDown))
+        AppStore.actions.ofType<Event.FlicUpOrDown>().doOnNext {
+            Timber.w("Flic event: $it")
+            notificationManager.notify(SERVICE_NOTIFICATION_ID, if (it.isDown) downNotification else upNotification)
             if (it.isDown) {
                 addOrRemoveTrackFromLibrary()
             }
@@ -72,9 +69,26 @@ class FlicifyService : Service() {
 
 
         AppStore.state.subscribe {
-            // Hack to keep state subscription alive
+            when (it.flicConnectionState) {
+                is AppState.FlicConnectionState.Connected -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        val mChannel = NotificationChannel(
+                            NOTIFICATION_CHANNEL_ID,
+                            NOTIFICATION_CHANNEL_NAME,
+                            NotificationManager.IMPORTANCE_LOW
+                        )
+                        notificationManager.createNotificationChannel(mChannel)
+                    }
+                    startForeground(SERVICE_NOTIFICATION_ID, upNotification)
+                }
+                else -> {
+                    stopForeground(true)
+                }
+            }
+
             Timber.v("State in service : $it")
         }.addTo(disposables)
+
         connectSpotifyRemote()
     }
 
@@ -178,14 +192,14 @@ class FlicifyService : Service() {
 
     class BootUpReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-           Timber.w("Device restarted")
+            Timber.w("Device restarted")
             // The Application class's onCreate has already been called at this point, which is what we want
         }
     }
 
     class UpdateReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-           Timber.w("App re-installed / updated")
+            Timber.w("App re-installed / updated")
             // The Application class's onCreate has already been called at this point, which is what we want
         }
     }
@@ -193,4 +207,15 @@ class FlicifyService : Service() {
     companion object {
         private const val SERVICE_NOTIFICATION_ID = 123
     }
+}
+
+//https://stackoverflow.com/questions/600207/how-to-check-if-a-service-is-running-on-android
+fun Context.isServiceRunning(serviceClass: Class<*>): Boolean {
+    val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
+    for (service in manager!!.getRunningServices(Int.MAX_VALUE)) {
+        if (serviceClass.name == service.service.className) {
+            return true
+        }
+    }
+    return false
 }

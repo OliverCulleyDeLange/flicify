@@ -4,11 +4,22 @@ import android.app.Application
 import android.content.Intent
 import android.os.Handler
 import androidx.core.content.ContextCompat
+import com.uber.autodispose.android.lifecycle.scope
+import com.uber.autodispose.autoDispose
 import io.flic.flic2libandroid.Flic2Manager
+import io.reactivex.rxkotlin.ofType
 import timber.log.Timber
+import uk.co.oliverdelange.flicify.flic.connectFlics
+import uk.co.oliverdelange.flicify.redux.AppState
+import uk.co.oliverdelange.flicify.redux.AppStore
+import uk.co.oliverdelange.flicify.redux.Event
+import uk.co.oliverdelange.flicify.redux.Result
 import uk.co.oliverdelange.flicify.service.FlicifyService
+import uk.co.oliverdelange.flicify.service.isServiceRunning
 
 class Flicify : Application() {
+    private val flicServiceIntent by lazy { Intent(applicationContext, FlicifyService::class.java) }
+
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
@@ -17,16 +28,24 @@ class Flicify : Application() {
 
         Timber.v("onCreate Flicify Application")
 
-        // To prevent the application process from being killed while the app is running in the background, start a Foreground Service
-        ContextCompat.startForegroundService(
-            applicationContext, Intent(
-                applicationContext,
-                FlicifyService::class.java
-            )
-        )
-
         // Initialize the Flic2 manager to run on the same thread as the current thread (the main thread)
-        Flic2Manager.init(applicationContext, Handler())
+        val flic2Manager = Flic2Manager.initAndGetInstance(applicationContext, Handler())
+
+        AppStore.state.map { it.flicConnectionState }.distinctUntilChanged().subscribe {
+            when (it) {
+                is AppState.FlicConnectionState.Connected -> if (!isServiceRunning(FlicifyService::class.java)) {
+                    // To prevent the application process from being killed while the app is running in the background, start a Foreground Service
+                    Timber.w("Starting foreground flic service from Activity")
+                    ContextCompat.startForegroundService(applicationContext, flicServiceIntent)
+                }
+                is AppState.FlicConnectionState.Disconnected -> if (isServiceRunning(FlicifyService::class.java)) {
+                    Timber.w("Stopping flic service from Activity")
+                    stopService(flicServiceIntent)
+                }
+            }
+        }
+
+        connectFlics(flic2Manager.buttons)
     }
 }
 

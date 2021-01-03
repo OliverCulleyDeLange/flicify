@@ -15,11 +15,11 @@ val flic2ButtonListener = object : Flic2ButtonListener() {
         isUp: Boolean,
         isDown: Boolean
     ) {
-        AppStore.dispatch(Event.Flic(button, wasQueued, lastQueued, timestamp, isUp, isDown))
+        AppStore.dispatch(Event.FlicUpOrDown(button, wasQueued, lastQueued, timestamp, isUp, isDown))
     }
 
     override fun onConnect(button: Flic2Button) {
-        AppStore.dispatch(Result.Flic.Connect(button))
+        AppStore.dispatch(Result.Flic.Connected(button))
     }
 
     override fun onReady(button: Flic2Button, timestamp: Long) {

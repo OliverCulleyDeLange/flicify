@@ -10,8 +10,10 @@ fun sideEffects() = listOf(
     logging,
     convertMainButtonTap,
     startScan,
+    connectToAlreadyPaired,
     stopScan,
-    disconnectFlic
+    disconnectFlic,
+    unpairFlic
 )
 
 val logging: SideEffect<AppState, Action> = { actions, state ->
@@ -24,10 +26,10 @@ val convertMainButtonTap: SideEffect<AppState, Action> = { actions, state ->
     actions.ofType<Event.Tap.MainButton>()
         .map {
             when (val connectionState = state().flicConnectionState) {
-                is AppState.FlicConnectionState.Sleeping -> Event.DisconnectFlic(connectionState.button)
                 AppState.FlicConnectionState.Scanning -> Event.StopScan
-                is AppState.FlicConnectionState.Connected -> Event.DisconnectFlic(connectionState.button)
-                AppState.FlicConnectionState.Disconnected -> Event.StartScan
+                is AppState.FlicConnectionState.Connecting -> Event.UnpairFlic(connectionState.button)
+                is AppState.FlicConnectionState.Connected -> Event.UnpairFlic(connectionState.button)
+                is AppState.FlicConnectionState.Disconnected -> Event.StartScan
             }
         }
 }
@@ -41,6 +43,13 @@ val startScan: SideEffect<AppState, Action> = { actions, state ->
         }
 }
 
+val connectToAlreadyPaired: SideEffect<AppState, Action> = { actions, state ->
+    actions.ofType<Result.Scan.FlicDiscoveredButAlreadyPaired>()
+        .doOnNext {
+            it.button.connect()
+        }.ignoreElements().toObservable()
+}
+
 val stopScan: SideEffect<AppState, Action> = { actions, state ->
     actions.ofType<Event.StopScan>()
         .map {
@@ -51,8 +60,13 @@ val stopScan: SideEffect<AppState, Action> = { actions, state ->
 
 val disconnectFlic: SideEffect<AppState, Action> = { actions, state ->
     actions.ofType<Event.DisconnectFlic>()
-        .map {
+        .doOnNext { it.button.disconnectOrAbortPendingConnection() }
+        .ignoreElements().toObservable()
+}
+
+val unpairFlic: SideEffect<AppState, Action> = { actions, state ->
+    actions.ofType<Event.UnpairFlic>()
+        .doOnNext {
             Flic2Manager.getInstance().forgetButton(it.button)
-            Result.Flic.Disconnected(it.button)
-        }
+        }.ignoreElements().toObservable()
 }

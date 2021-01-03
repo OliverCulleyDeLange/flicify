@@ -1,6 +1,7 @@
 package uk.co.oliverdelange.flicify.view
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
@@ -16,10 +17,14 @@ import uk.co.oliverdelange.flicify.redux.AppState
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
 import uk.co.oliverdelange.flicify.redux.Result
+import uk.co.oliverdelange.flicify.service.FlicifyService
 
 const val REQUEST_LOCATION_PERMISSIONS = 1
 
+
 class FlicActivity : AppCompatActivity() {
+
+    private val flic2Manager = Flic2Manager.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.v("onCreate FlicActivity")
@@ -30,19 +35,41 @@ class FlicActivity : AppCompatActivity() {
     override fun onDestroy() {
         Timber.v("onDestroy FlicActivity")
         super.onDestroy()
-        Flic2Manager.getInstance().stopScan()
+        flic2Manager.stopScan()
     }
 
     override fun onStart() {
         Timber.v("onStart FlicActivity")
         super.onStart()
+        uiUpdates()
+        permissions()
+
+        AppStore.actions<Result.LocationPermission.Denied>(this) {
+            Toast.makeText(
+                applicationContext,
+                "Scanning needs Location permission, which you have rejected",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        AppStore.push(this, mainFlicButton.clicks().map { Event.Tap.MainButton })
+    }
+
+    private fun permissions() {
+        AppStore.actions<Event.CheckPermissions>(this) {
+            checkPermissions()
+        }
+        AppStore.dispatch(Event.CheckPermissions)
+    }
+
+    private fun uiUpdates() {
         AppStore.state(this) {
             Timber.v("State changed. Updating UI!")
             spinner.visibility = visibleIf(it.flicConnectionState == AppState.FlicConnectionState.Scanning)
             mainFlicButton.text = when (it.flicConnectionState) {
-                is AppState.FlicConnectionState.Sleeping -> getString(R.string.disconnect)
+                is AppState.FlicConnectionState.Connecting -> getString(R.string.disconnect)
                 is AppState.FlicConnectionState.Connected -> getString(R.string.disconnect)
-                AppState.FlicConnectionState.Disconnected -> getString(R.string.scan)
+                is AppState.FlicConnectionState.Disconnected -> getString(R.string.scan)
                 AppState.FlicConnectionState.Scanning -> getString(R.string.cancel)
             }
             flicInfo.text = it.flicInfo
@@ -55,21 +82,6 @@ class FlicActivity : AppCompatActivity() {
 
             flicBg.setBackgroundColor(getColor(if (it.flicDown) R.color.spotifyBlack else R.color.flicPurple))
         }
-        AppStore.actions<Event.CheckPermissions>(this) {
-            checkPermissions()
-        }
-
-        AppStore.actions<Result.LocationPermission.Denied>(this) {
-            Toast.makeText(
-                applicationContext,
-                "Scanning needs Location permission, which you have rejected",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-        AppStore.push(this, mainFlicButton.clicks().map { Event.Tap.MainButton })
-        AppStore.dispatch(Event.CheckPermissions)
-
-        connectFlics(Flic2Manager.getInstance().buttons)
     }
 
     private fun checkPermissions() {

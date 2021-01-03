@@ -11,12 +11,13 @@ sealed class Event : Action {
     object StartScan : Action
     object StopScan : Action
     data class DisconnectFlic(val button: Flic2Button) : Action
+    data class UnpairFlic(val button: Flic2Button) : Action
 
     sealed class Tap : Event() {
         object MainButton : Tap()
     }
 
-    data class Flic(
+    data class FlicUpOrDown(
         val button: Flic2Button,
         val wasQueued: Boolean,
         val lastQueued: Boolean,
@@ -42,14 +43,14 @@ sealed class Result : Action {
         object ScanStopped : Scan()
         data class ScanSuccess(val result: Int, val subCode: Int, val button: Flic2Button) : Scan()
         data class ScanFailure(val result: Int, val errorString: String) : Scan()
-        object FlicDiscoveredButAlreadyPaired : Scan()
+        data class FlicDiscoveredButAlreadyPaired(val button: Flic2Button) : Scan()
         object FlicDiscovered : Scan()
         object FlicConnected : Scan()
     }
 
     sealed class Flic : Result() {
         data class ConnectRequest(val button: Flic2Button) : Flic()
-        data class Connect(val button: Flic2Button) : Flic()
+        data class Connected(val button: Flic2Button) : Flic()
         data class Disconnected(val button: Flic2Button) : Flic()
         data class Ready(val button: Flic2Button, val timestamp: Long) : Flic()
         data class Unpaired(val button: Flic2Button) : Flic()

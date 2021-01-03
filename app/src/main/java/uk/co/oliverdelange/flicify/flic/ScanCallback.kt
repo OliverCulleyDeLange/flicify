@@ -10,7 +10,7 @@ import uk.co.oliverdelange.flicify.redux.Result
 fun flic2ScanCallback(): Flic2ScanCallback {
     return object : Flic2ScanCallback {
         override fun onDiscoveredAlreadyPairedButton(button: Flic2Button) {
-            AppStore.dispatch(Result.Scan.FlicDiscoveredButAlreadyPaired)
+            AppStore.dispatch(Result.Scan.FlicDiscoveredButAlreadyPaired(button))
         }
 
         override fun onDiscovered(bdAddr: String) {
