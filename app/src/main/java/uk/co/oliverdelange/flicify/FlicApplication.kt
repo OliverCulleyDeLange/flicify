@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDispose
 import io.flic.flic2libandroid.Flic2Manager
+import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
 import timber.log.Timber
 import uk.co.oliverdelange.flicify.flic.connectFlics
@@ -16,6 +17,9 @@ import uk.co.oliverdelange.flicify.redux.Event
 import uk.co.oliverdelange.flicify.redux.Result
 import uk.co.oliverdelange.flicify.service.FlicifyService
 import uk.co.oliverdelange.flicify.service.isServiceRunning
+import uk.co.oliverdelange.flicify.speech.SpeechEvents
+import uk.co.oliverdelange.flicify.speech.SpeechResults
+import uk.co.oliverdelange.flicify.speech.initSpeech
 
 class Flicify : Application() {
     private val flicServiceIntent by lazy { Intent(applicationContext, FlicifyService::class.java) }
@@ -46,6 +50,24 @@ class Flicify : Application() {
         }
 
         connectFlics(flic2Manager.buttons)
+
+
+        initSpeech(applicationContext).switchMap {
+            when(it){
+                is SpeechResults.Init.TTSInitSuccess -> {
+                 Timber.w("TTS INIT'd")
+                    val controller = it.speechController
+                    AppStore.actions.ofType<SpeechEvents.Speak>().flatMap { speak ->
+                        controller.speak(speak.speech)
+                    }
+                }
+                is SpeechResults.Init.TTSInitError -> {
+                 Timber.e(it.error, "Couldn't init TTS")
+                    Observable.never()
+                }
+                SpeechResults.Init.SpeechEngineDeinitialised -> TODO()
+            }
+        }.subscribe()
     }
 }
 

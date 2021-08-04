@@ -3,6 +3,7 @@ package uk.co.oliverdelange.flicify.view
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -12,12 +13,11 @@ import io.flic.flic2libandroid.Flic2Manager
 import kotlinx.android.synthetic.main.activity_flic.*
 import timber.log.Timber
 import uk.co.oliverdelange.flicify.R
-import uk.co.oliverdelange.flicify.flic.connectFlics
 import uk.co.oliverdelange.flicify.redux.AppState
 import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
 import uk.co.oliverdelange.flicify.redux.Result
-import uk.co.oliverdelange.flicify.service.FlicifyService
+import uk.co.oliverdelange.flicify.speech.SpeechEvents
 
 const val REQUEST_LOCATION_PERMISSIONS = 1
 
@@ -30,6 +30,7 @@ class FlicActivity : AppCompatActivity() {
         Timber.v("onCreate FlicActivity")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_flic)
+        intent?.handle()
     }
 
     override fun onDestroy() {
@@ -53,6 +54,54 @@ class FlicActivity : AppCompatActivity() {
         }
 
         AppStore.push(this, mainFlicButton.clicks().map { Event.Tap.MainButton })
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        Timber.i("New intent: $intent")
+        intent?.handle()
+    }
+
+    private fun Intent.handle() {
+        Timber.i("Handling Intent: $this with extras: ${extras?.keySet()?.map { it to extras?.get(it) }}")
+        when (action) {
+            Intent.ACTION_VIEW -> {
+                when{
+                    data != null -> data?.handleDeeplink()
+                    hasExtra("name") -> {
+                        val exercise = getStringExtra("name")
+                        Timber.w("Start $exercise")
+                        AppStore.dispatch(SpeechEvents.Speak("Starting $exercise"))
+                    }
+                    hasExtra("itemListName") && hasExtra("itemListElementName") -> {
+                        val listName = getStringExtra("itemListName")
+                        val item = getStringExtra("itemListElementName")
+                        Timber.i("itemListName: $listName")
+                        Timber.i("itemListElementName: $item")
+                        if (listName == "liked songs" && item == "this song") {
+                            Timber.w("User wants to add this song to their liked songs")
+                        } else Timber.w("Can't handle this request")
+                    }
+                }
+
+            }
+            else -> Timber.w("Unexpected intent action ${intent.action}")
+        }
+    }
+
+    private fun Uri.handleDeeplink() {
+        Timber.i("Got deeplink: $this")
+        when (path) {
+            "/start" -> {
+                // Get the parameter defined as "exerciseType" and add it to the fragment arguments
+                val exerciseType = getQueryParameter("exerciseType").orEmpty()
+                Timber.w("Starting: $exerciseType")
+            }
+            "/stop" -> Timber.i("Stopping")
+            else -> {
+                Timber.w("Unexpected deeplink $path")
+            }
+        }
     }
 
     private fun permissions() {
