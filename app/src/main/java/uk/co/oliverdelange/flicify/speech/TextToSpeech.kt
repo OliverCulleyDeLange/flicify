@@ -2,8 +2,6 @@ package uk.co.oliverdelange.flicify.speech
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
-import android.speech.tts.Voice
-import android.util.Log
 import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposables
@@ -13,6 +11,7 @@ import java.util.*
 
 sealed class SpeechEvents : Action {
     data class Speak(val speech: String) : SpeechEvents()
+    data class Listen(val seconds: Int) : SpeechEvents()
 }
 
 sealed class SpeechResults : Action {
@@ -56,12 +55,12 @@ private class Speech(val context: Context) : Observable<SpeechResults.Init>() {
     }
 }
 
-sealed class UtteranceEvent {
+sealed class UtteranceEvent: Action {
     abstract val utteranceId: String
 
     data class UtteranceDone(override val utteranceId: String) : UtteranceEvent()
     data class UtteranceError(override val utteranceId: String, val errorCode: Int? = null) : UtteranceEvent()
-    data class AudioAvailable(override val utteranceId: String, val audio: ByteArray?) : UtteranceEvent()
+    data class AudioAvailable(override val utteranceId: String/*, val audio: ByteArray?*/) : UtteranceEvent()
     data class RangeStart(override val utteranceId: String, val start: Int, val end: Int, val frame: Int) : UtteranceEvent()
     data class Start(override val utteranceId: String) : UtteranceEvent()
     data class Stop(override val utteranceId: String, val interrupted: Boolean) : UtteranceEvent()

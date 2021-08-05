@@ -68,7 +68,7 @@ private class RxUtteranceProgressListener : UtteranceProgressListener() {
         relay.onNext(UtteranceEvent.UtteranceError(utteranceId))
 
     override fun onAudioAvailable(utteranceId: String, audio: ByteArray?) =
-        relay.onNext(UtteranceEvent.AudioAvailable(utteranceId, audio))
+        relay.onNext(UtteranceEvent.AudioAvailable(utteranceId/*, audio*/))
 
     override fun onDone(utteranceId: String) =
         relay.onNext(UtteranceEvent.UtteranceDone(utteranceId))

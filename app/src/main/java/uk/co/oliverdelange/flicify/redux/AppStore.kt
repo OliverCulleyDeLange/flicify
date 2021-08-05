@@ -1,5 +1,6 @@
 package uk.co.oliverdelange.flicify.redux
 
+import android.content.Context
 import androidx.lifecycle.LifecycleOwner
 import com.freeletics.rxredux.reduxStore
 import com.jakewharton.rx.replayingShare
@@ -10,13 +11,18 @@ import io.reactivex.rxkotlin.ofType
 import io.reactivex.subjects.PublishSubject
 import timber.log.Timber
 
-object AppStore {
-    private val actionsSubject = PublishSubject.create<Action>()
+private val actionsSubject = PublishSubject.create<Action>()
+
+class AppStore(val context: Context) {
     val actions: Observable<Action>
         get() = actionsSubject
 
     val state: Observable<AppState> = actions
-        .reduxStore(AppState(spotifyInfo = "Spotify not linked yet"), sideEffects(), reducer)
+        .reduxStore(
+            AppState(spotifyInfo = "Spotify not linked yet"),
+            sideEffects(context),
+            reducer
+        )
         .distinctUntilChanged()
         .doOnNext {
             Timber.v("$it")
@@ -27,7 +33,6 @@ object AppStore {
 
     /** Dispatch a single action to the store*/
     fun dispatch(action: Action) {
-        Timber.v("Dispatching $action")
         actionsSubject.onNext(action)
     }
 
@@ -43,5 +48,9 @@ object AppStore {
     /** Subscribe to actions */
     inline fun <reified T : Any> actions(scope: LifecycleOwner, noinline actionHandler: (T) -> Unit) {
         actions.ofType<T>().doOnNext(actionHandler).autoDispose(scope.scope()).subscribe()
+    }
+
+    companion object {
+        fun dispatch(action: Action) = actionsSubject.onNext(action)
     }
 }

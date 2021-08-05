@@ -1,19 +1,41 @@
 package uk.co.oliverdelange.flicify.redux
 
+import android.content.Context
+import android.content.Intent
 import com.freeletics.rxredux.SideEffect
 import io.flic.flic2libandroid.Flic2Manager
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.ofType
 import timber.log.Timber
 import uk.co.oliverdelange.flicify.flic.flic2ScanCallback
+import uk.co.oliverdelange.flicify.speech.*
 
-fun sideEffects() = listOf(
+fun sideEffects(context: Context) = listOf(
     logging,
     convertMainButtonTap,
     startScan,
     connectToAlreadyPaired,
     stopScan,
     disconnectFlic,
-    unpairFlic
+    unpairFlic,
+    { a, s ->
+        a.ofType<SpeechRecognitionResults.SpeechRecognitionListenerResults.Results>().map {
+            SpeechEvents.Speak("You said ${it.speech?.first()}")
+        }
+    },
+    {a,s -> initSpeech(context) },
+    {a,s -> initSpeechRecognition(context) },
+    {a,s -> a.ofType<SpeechResults.Init.TTSInitSuccess>().flatMap {
+        a.ofType<SpeechEvents.Speak>().flatMap {(msg) -> it.speechController.speak(msg) }
+    }},
+    {a,s -> a.ofType<SpeechRecognitionResults.RecogniserAvailable>().flatMap {(recogniser) ->
+       a.ofType<UtteranceEvent.UtteranceDone>()
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnNext {
+                Timber.i("Started listening for speech")
+                recogniser.startListening(Intent())
+            }.map{ SpeechRecognitionResults.StartedListening }
+    }}
 )
 
 val logging: SideEffect<AppState, Action> = { actions, state ->

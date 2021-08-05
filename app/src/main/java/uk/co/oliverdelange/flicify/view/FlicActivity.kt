@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import io.flic.flic2libandroid.Flic2Manager
 import kotlinx.android.synthetic.main.activity_flic.*
 import timber.log.Timber
+import uk.co.oliverdelange.flicify.Flicify
 import uk.co.oliverdelange.flicify.R
 import uk.co.oliverdelange.flicify.redux.AppState
 import uk.co.oliverdelange.flicify.redux.AppStore
@@ -21,8 +22,15 @@ import uk.co.oliverdelange.flicify.speech.SpeechEvents
 
 const val REQUEST_LOCATION_PERMISSIONS = 1
 
+open class BaseActivity : AppCompatActivity() {
+    lateinit var store: AppStore
+    override fun onCreate(savedInstanceState: Bundle?) {
+        store = (application as Flicify).store
+        super.onCreate(savedInstanceState)
+    }
+}
 
-class FlicActivity : AppCompatActivity() {
+class FlicActivity : BaseActivity() {
 
     private val flic2Manager = Flic2Manager.getInstance()
 
@@ -45,7 +53,7 @@ class FlicActivity : AppCompatActivity() {
         uiUpdates()
         permissions()
 
-        AppStore.actions<Result.LocationPermission.Denied>(this) {
+        store.actions<Result.LocationPermission.Denied>(this) {
             Toast.makeText(
                 applicationContext,
                 "Scanning needs Location permission, which you have rejected",
@@ -53,7 +61,7 @@ class FlicActivity : AppCompatActivity() {
             ).show()
         }
 
-        AppStore.push(this, mainFlicButton.clicks().map { Event.Tap.MainButton })
+        store.push(this, mainFlicButton.clicks().map { Event.Tap.MainButton })
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -66,12 +74,12 @@ class FlicActivity : AppCompatActivity() {
         Timber.i("Handling Intent: $this with extras: ${extras?.keySet()?.map { it to extras?.get(it) }}")
         when (action) {
             Intent.ACTION_VIEW -> {
-                when{
+                when {
                     data != null -> data?.handleDeeplink()
                     hasExtra("name") -> {
                         val exercise = getStringExtra("name")
                         Timber.w("Start $exercise")
-                        AppStore.dispatch(SpeechEvents.Speak("Starting $exercise"))
+                        store.dispatch(SpeechEvents.Speak("Starting $exercise"))
                     }
                     hasExtra("itemListName") && hasExtra("itemListElementName") -> {
                         val listName = getStringExtra("itemListName")
@@ -105,14 +113,14 @@ class FlicActivity : AppCompatActivity() {
     }
 
     private fun permissions() {
-        AppStore.actions<Event.CheckPermissions>(this) {
+        store.actions<Event.CheckPermissions>(this) {
             checkPermissions()
         }
-        AppStore.dispatch(Event.CheckPermissions)
+        store.dispatch(Event.CheckPermissions)
     }
 
     private fun uiUpdates() {
-        AppStore.state(this) {
+        store.state(this) {
             Timber.v("State changed. Updating UI!")
             spinner.visibility = visibleIf(it.flicConnectionState == AppState.FlicConnectionState.Scanning)
             mainFlicButton.text = when (it.flicConnectionState) {
@@ -143,9 +151,9 @@ class FlicActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == REQUEST_LOCATION_PERMISSIONS) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                AppStore.dispatch(Result.LocationPermission.Granted)
+                store.dispatch(Result.LocationPermission.Granted)
             } else {
-                AppStore.dispatch(Result.LocationPermission.Denied)
+                store.dispatch(Result.LocationPermission.Denied)
             }
         }
     }

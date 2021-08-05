@@ -4,6 +4,7 @@ import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
@@ -17,15 +18,16 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.ofType
 import timber.log.Timber
+import uk.co.oliverdelange.flicify.Flicify
 import uk.co.oliverdelange.flicify.R
 import uk.co.oliverdelange.flicify.redux.AppState
-import uk.co.oliverdelange.flicify.redux.AppStore
 import uk.co.oliverdelange.flicify.redux.Event
 import uk.co.oliverdelange.flicify.redux.Result
 import uk.co.oliverdelange.flicify.view.FlicActivity
 
 
 class FlicifyService : Service() {
+    val store = (application as Flicify).store
     private val vibrateMilliseconds = 200L
     private val NOTIFICATION_CHANNEL_ID = "Notification_Channel_Flicify"
     private val NOTIFICATION_CHANNEL_NAME: CharSequence = "Flicify"
@@ -44,7 +46,7 @@ class FlicifyService : Service() {
         Timber.v("onCreate FlicifyService")
         super.onCreate()
 
-        AppStore.actions.ofType<Event.FlicUpOrDown>().doOnNext {
+        store.actions.ofType<Event.FlicUpOrDown>().doOnNext {
             Timber.w("Flic event: $it")
             notificationManager.notify(SERVICE_NOTIFICATION_ID, if (it.isDown) downNotification else upNotification)
             if (it.isDown) {
@@ -52,14 +54,14 @@ class FlicifyService : Service() {
             }
         }.subscribe().addTo(disposables)
 
-        AppStore.actions.ofType<Result.SpotifyConnected>().doOnNext {
+        store.actions.ofType<Result.SpotifyConnected>().doOnNext {
             Timber.i("Spotify connected. Subscribing to playerState updates")
             it.remote.playerApi?.subscribeToPlayerState()?.setEventCallback { playerState ->
-                AppStore.dispatch(Result.SpotifyPlayerUpdate(playerState))
+                store.dispatch(Result.SpotifyPlayerUpdate(playerState))
             }
         }.subscribe().addTo(disposables)
 
-        AppStore.actions.ofType<Result.Track>().doOnNext {
+        store.actions.ofType<Result.Track>().doOnNext {
             when (it) {
                 is Result.Track.SavedToLibrary -> playSound(R.raw.added)
                 is Result.Track.RemovedFromLibrary -> playSound(R.raw.removed)
@@ -68,7 +70,7 @@ class FlicifyService : Service() {
         }.subscribe().addTo(disposables)
 
 
-        AppStore.state.subscribe {
+        store.state.subscribe {
             when (it.flicConnectionState) {
                 is AppState.FlicConnectionState.Connected -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -114,7 +116,7 @@ class FlicifyService : Service() {
     private fun addOrRemoveTrackFromLibrary() {
         Timber.i("Adding / removing song from library")
         //TODO RXify
-        val spotifyRemote = AppStore.currentState().spotifyRemote
+        val spotifyRemote = store.currentState().spotifyRemote
         spotifyRemote?.playerApi?.playerState?.setResultCallback { player ->
             val track = player.track
             Timber.d("Got current song URI: ${track.uri}")
@@ -124,17 +126,17 @@ class FlicifyService : Service() {
                         Timber.d("Removing currently playing song")
                         spotifyRemote.userApi?.removeFromLibrary(track.uri)?.setResultCallback {
                             Timber.d("Removed song from library!")
-                            AppStore.dispatch(Result.Track.RemovedFromLibrary(track))
+                            store.dispatch(Result.Track.RemovedFromLibrary(track))
                         }
                     }
                     trackState.canAdd -> {
                         Timber.d("Saving currently playing song")
                         spotifyRemote.userApi?.addToLibrary(track.uri)?.setResultCallback {
                             Timber.d("Saved song to library!")
-                            AppStore.dispatch(Result.Track.SavedToLibrary(track))
+                            store.dispatch(Result.Track.SavedToLibrary(track))
                         }
                     }
-                    else -> AppStore.dispatch(Result.Track.CanNotSaveToLibrary(track))
+                    else -> store.dispatch(Result.Track.CanNotSaveToLibrary(track))
                 }
             }
         }
@@ -151,12 +153,12 @@ class FlicifyService : Service() {
             object : Connector.ConnectionListener {
                 override fun onConnected(spotifyAppRemote: SpotifyAppRemote) {
                     Timber.d("Spotify Remote Connected!")
-                    AppStore.dispatch(Result.SpotifyConnected(spotifyAppRemote))
+                    store.dispatch(Result.SpotifyConnected(spotifyAppRemote))
                 }
 
                 override fun onFailure(throwable: Throwable) {
                     Timber.e(throwable.message, throwable)
-                    AppStore.dispatch(Result.SpotifyError(throwable))
+                    store.dispatch(Result.SpotifyError(throwable))
                 }
             })
     }
@@ -182,7 +184,7 @@ class FlicifyService : Service() {
         Timber.v("onDestroy FlicifyService")
         super.onDestroy()
         Timber.d("Destroying Flicify service")
-        SpotifyAppRemote.disconnect(AppStore.currentState().spotifyRemote)
+        SpotifyAppRemote.disconnect(store.currentState().spotifyRemote)
         disposables.dispose()
     }
 
